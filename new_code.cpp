@@ -71,28 +71,50 @@ public:
     }
 };
 
+void makeBaseGraph(WeightedGraph &Graph, int machines, int jobs)
+{
+    int shift = 0;
+    int tasks = machines*jobs;
+    for(int i=0;i<jobs;i++)
+    {
+        Graph.addEdge(0, shift+1, 0);
+        //cout << "0 ," << shift+1 << endl;
+        for(int j=shift+1;j<machines+shift;j++)
+        {
+            //cout << j << "," << j+1 << endl;
+            Graph.addEdge(j, j+1, 2);   // pobieranie dlugosci ze struktury
+        }
+        //cout << machines + shift << ", " << tasks + 1<< endl;
+        Graph.addEdge(machines + shift, tasks + 1, 4);
+        shift += machines;
+    }
+    
+}
+
 int main() {
     WeightedGraph weightedGraph(11);
 
-    weightedGraph.addEdge(0, 1, 0);
-    weightedGraph.addEdge(0, 7, 0);
-    weightedGraph.addEdge(0, 4, 0);
-    weightedGraph.addEdge(1, 2, 5);
-    weightedGraph.addEdge(1, 7, 5);
-    weightedGraph.addEdge(7, 8, 3);
-    weightedGraph.addEdge(7, 5, 3);
-    weightedGraph.addEdge(8, 2, 6);
-    weightedGraph.addEdge(8, 9, 6);
-    weightedGraph.addEdge(2, 6, 4);
-    weightedGraph.addEdge(2, 3, 4);
-    weightedGraph.addEdge(5, 6, 3);
-    weightedGraph.addEdge(4, 9, 2);
-    weightedGraph.addEdge(4, 5, 2);
-    weightedGraph.addEdge(3, 10, 2);
-    weightedGraph.addEdge(6, 10, 7);
-    weightedGraph.addEdge(9, 10, 1);
-    weightedGraph.addEdge(9, 3, 1);
+    // weightedGraph.addEdge(0, 1, 0);
+    // weightedGraph.addEdge(0, 7, 0);
+    // weightedGraph.addEdge(0, 4, 0);
+    // weightedGraph.addEdge(1, 2, 5);
+    // weightedGraph.addEdge(1, 7, 5);
+    // weightedGraph.addEdge(7, 8, 3);
+    // weightedGraph.addEdge(7, 5, 3);
+    // weightedGraph.addEdge(8, 2, 6);
+    // weightedGraph.addEdge(8, 9, 6);
+    // weightedGraph.addEdge(2, 6, 4);
+    // weightedGraph.addEdge(2, 3, 4);
+    // weightedGraph.addEdge(5, 6, 3);
+    // weightedGraph.addEdge(4, 9, 2);
+    // weightedGraph.addEdge(4, 5, 2);
+    // weightedGraph.addEdge(3, 10, 2);
+    // weightedGraph.addEdge(6, 10, 7);
+    // weightedGraph.addEdge(9, 10, 1);
+    // weightedGraph.addEdge(9, 3, 1);
+    // M0 : 1,5,7 M1 : 2,6,8 M3 : 3,4,9
 
+    makeBaseGraph(weightedGraph, 3, 3);  //potestowac przez zmienianie rozmiaru jobow i maszyn
     // Wykonaj sortowanie topologiczne i znajdź najdłuższe ścieżki
     weightedGraph.topologicalSort();
 
