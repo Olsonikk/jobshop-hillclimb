@@ -179,6 +179,11 @@ void czytajMape(const map<int, vector<int>>& mapa) {
     }
 }
 
+void addDisjunctiveEdges()
+{
+
+}
+
 int main() {
     int jobs, machines;
     WeightedGraph weightedGraph(11);
@@ -214,3 +219,6 @@ int main() {
 
     return 0;
 }
+
+
+//podmiana wierzcholkow - swap w mapie, przerobienie krawędzi dysjunktywnych. Pozostałe stałe ESSA
