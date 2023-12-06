@@ -9,9 +9,11 @@
 #include <time.h>
 #include <algorithm>
 #include <unordered_set>
-//#include <bits/stdc++.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
+using namespace chrono;
 
 int jobs, machines;
 
@@ -91,18 +93,6 @@ public:
             }
         }
 
-        //Wydrukuj najdłuższe ścieżki
-        // cout << "Longest paths from source vertex:\n";
-        // cout<<longestPath[jobs*machines+1]<<endl;
-        // for (int i = 1; i <= jobs*machines; i++) {
-        //     cout<<longestPath[i]<<" ";
-        //     if(i%machines==0) cout<<endl;
-        // }
-        //cout<<endl;
-        // cout << "Longest paths from source vertex:\n";
-        // for (int i = 0; i < vertices; ++i) {
-        //     cout << "Vertex " << i << ": " << longestPath[i] << endl;
-        // }
         return longestPath[jobs*machines+1];
     
     }
@@ -242,7 +232,7 @@ void read_orlib(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int>>
     for (int i = 0; i < jobs; ++i) {
         int shiftID = i*(machines);
         Graph.addEdge(0, shiftID+1, 0,0);
-        cout << "0 ," << shiftID+1 << endl;
+        //cout << "0 ," << shiftID+1 << endl;
         for(int j=shiftID+1;j<machines+shiftID;j++)
         {
             inputFile >> machine_n >> duration;
@@ -291,9 +281,24 @@ void sort_machine_map(map<int, vector<int>> &mapa){
     
 }
 
+void toFile(WeightedGraph &Graph){
+    ofstream outFile("output.txt");
+    outFile<<Graph.longestPath[jobs*machines+1]<<endl;
+
+    for(int i=1;i<=jobs*machines;i++){
+        outFile<<Graph.longestPath[i]<<" ";
+        if(i%machines==0) outFile<<endl;
+    }
+    outFile.close();
+}
+    
+
 int main() {
     srand(time(NULL));
-    ifstream inputFile("tai06.txt");
+    
+    int bad_neighbors = 0, iterations = 300000;
+
+    ifstream inputFile("swv17.txt");
 
     inputFile >> jobs >> machines;
     
@@ -307,14 +312,14 @@ int main() {
     vector<int> durations; //source and sink
     int mainSolution,tmpSolution;
 
-    //read_orlib(inputFile,baseGraph, machine_map, durations);
-    read_tailard(inputFile,baseGraph, machine_map, durations);
+    read_orlib(inputFile,baseGraph, machine_map, durations);
+    //read_tailard(inputFile,baseGraph, machine_map, durations);
     mainGraph = baseGraph;
     //neighborGraph= baseGraph;
 
     sort_machine_map(machine_map);
-    czytajMape(machine_map);
-    cout << endl;
+    //czytajMape(machine_map);
+    //cout << endl;
     //PrintList(mainGraph);
 
     //neighbor_machine_map = machine_map;
@@ -326,8 +331,10 @@ int main() {
     //cout<<endl;
 
     mainSolution = mainGraph.topologicalSort();
-
-    for(int i=0;i<30000;i++){
+    
+    auto start_time = high_resolution_clock::now();
+    
+    for(int i=0;i<iterations;i++){
         neighborGraph=baseGraph;
         neighbor_machine_map = machine_map;
         SwapVertexes(neighbor_machine_map);
@@ -338,14 +345,31 @@ int main() {
                 mainSolution = tmpSolution;
                 mainGraph = neighborGraph;
                 machine_map = neighbor_machine_map;
+                bad_neighbors = 0;
+            }else{
+                bad_neighbors++;
             }
+        }else{
+            bad_neighbors++;
+        }
+        auto current_time = high_resolution_clock::now();
+        auto elapsed_time = duration_cast<seconds>(current_time - start_time).count();
+        //cout<<elapsed_time<<endl;
+        if(bad_neighbors>=iterations/4){
+            cout << "Zli sasiedzi"<< endl;
+            break;
+        }
+        if (elapsed_time >= 900) {
+            cout << "Przekroczono limit czasu: "<<elapsed_time<< endl;
+            break;
         }
     }
-    cout<<mainSolution<<endl;
-    for (int i = 1; i <= jobs*machines; i++) {
-        cout<<mainGraph.longestPath[i]<<" ";
-        if(i%machines==0) cout<<endl;
-    }
+    toFile(mainGraph);
+    // cout<<mainSolution<<endl;
+    // for (int i = 1; i <= jobs*machines; i++) {
+    //     cout<<mainGraph.longestPath[i]<<" ";
+    //     if(i%machines==0) cout<<endl;
+    // }
     
     return 0;
 }
