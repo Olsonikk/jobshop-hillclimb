@@ -1,13 +1,15 @@
-// #include <iostream>
-// #include <vector>
-// #include <utility>
-// #include <stack>
-// #include <fstream>
-// #include <array>
-// #include <map>
-// #include <string>
-// #include <time.h>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <stack>
+#include <fstream>
+#include <array>
+#include <map>
+#include <string>
+#include <time.h>
+#include <algorithm>
+#include <unordered_set>
+//#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -17,10 +19,14 @@ class WeightedGraph {
 public:
     int vertices;
     vector<vector<array<int,3>>> adjacencyList;  // pair<destination, weight>
+    vector<int> longestPath;
 
     WeightedGraph(int V) {
         vertices = V;
         adjacencyList.resize(V);
+        for(int i=0;i<V;i++){
+            longestPath.push_back(-1);
+        }
     }
 
     void addEdge(int src, int dest, int weight,int type) {
@@ -44,7 +50,7 @@ public:
         //cout << stack.top() << endl;
     }
 
-    void topologicalSort() {
+    int topologicalSort() {
         vector<bool> visited(vertices, false);
         stack<int> s;
 
@@ -56,10 +62,10 @@ public:
 
         // Znajdź najdłuższe ścieżki
         //vector<int> longestPath(vertices, -1);
-        map<int,int> longestPath;
-        for(int i=jobs*machines+1;i>=0;i--){
-            longestPath[i] = -1;
-        }
+        // map<int,int> longestPath;
+        // for(int i=jobs*machines+1;i>=0;i--){
+        //     longestPath[i] = -1;
+        // }
 
         // for (int i = 0; i < jobs*machines+2; i++) {
         //     cout<<longestPath[i]<<" ";
@@ -69,34 +75,35 @@ public:
 
         while (!s.empty()) {
             int u = s.top();
-            cout << u << endl;
+            //cout << u << endl;
             s.pop();
 
             if (longestPath[u] != -1) {
                 for (const auto& neighbor : adjacencyList[u]) {
                     int v = neighbor[0];
                     int weight = neighbor[1];
-                    cout<<u<<"->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
+                    //cout<<u<<"->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
                     if (longestPath[v] < longestPath[u] + weight) {
                         longestPath[v] = longestPath[u] + weight;
-                        cout<<u<<"--->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
+                        //cout<<u<<"--->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
                     }
                 }
             }
         }
 
         //Wydrukuj najdłuższe ścieżki
-        cout << "Longest paths from source vertex:\n";
-        cout<<longestPath[jobs*machines+1]<<endl;
-        for (int i = 1; i <= jobs*machines; i++) {
-            cout<<longestPath[i]<<" ";
-            if(i%machines==0) cout<<endl;
-        }
+        // cout << "Longest paths from source vertex:\n";
+        // cout<<longestPath[jobs*machines+1]<<endl;
+        // for (int i = 1; i <= jobs*machines; i++) {
+        //     cout<<longestPath[i]<<" ";
+        //     if(i%machines==0) cout<<endl;
+        // }
         //cout<<endl;
         // cout << "Longest paths from source vertex:\n";
         // for (int i = 0; i < vertices; ++i) {
         //     cout << "Vertex " << i << ": " << longestPath[i] << endl;
         // }
+        return longestPath[jobs*machines+1];
     
     }
         bool isCyclicUtil(int v, vector<bool>& visited, unordered_set<int>& recursionStack) {
@@ -148,7 +155,7 @@ public:
     tmpDisjunVertex.erase(tmpDisjunVertex.begin() + index2);
     
     tmpDisjunVertex.clear();
-    cout<<"Random tasks: "<<randomTask1<<" "<<randomTask2<<endl;
+    //cout<<"Random tasks: "<<randomTask1<<" "<<randomTask2<<endl;
 
     for(int i=0;i<machine_map[randomMachine].size();i++){
         if(machine_map[randomMachine][i] == randomTask1){
@@ -157,32 +164,7 @@ public:
             machine_map[randomMachine][i] = randomTask1;
         }
     }
-
-    // for (int v=0; v<machine_map[randomJob].size(); v++){
-    //     int vertex = machine_map[randomJob][v];
-    //     //if(vertex!=randomTask1 && vertex!=randomTask2){
-    //         for (int edge=0; edge<Graph.adjacencyList[vertex].size(); edge++){
-    //             cout<<vertex<<". "<<Graph.adjacencyList[vertex][edge][0]<<" "<<Graph.adjacencyList[vertex][edge][1]<<" "<<Graph.adjacencyList[vertex][edge][2]<<endl;
-    //             if(Graph.adjacencyList[vertex][edge][2] == 1){
-    //                 if(Graph.adjacencyList[vertex][edge][0]==randomTask1){
-    //                     Graph.adjacencyList[vertex][edge][0]=randomTask2;
-    //                 }else if(Graph.adjacencyList[vertex][edge][0]==randomTask2){
-    //                     Graph.adjacencyList[vertex][edge][0]=randomTask1;
-    //                 }
-    //             }
-    //         }
-        //}     
-    //}
-    // for(int edge=0;edge<Graph.adjacencyList[randomJob].size();edge++){
-    //     if(Graph.adjacencyList[vertex][edge][2] == 1){
-    //         if(Graph.adjacencyList[vertex][edge][0]==randomTask1){
-    //             Graph.adjacencyList[vertex][edge][0]=randomTask2;
-    //         }else if(Graph.adjacencyList[vertex][edge][0]==randomTask2){
-    //             Graph.adjacencyList[vertex][edge][0]=randomTask1;
-    //         }
-    //     }
-    // }
-    }
+}
 
 void PrintList(WeightedGraph &Graph){
     for(int vertex=0;vertex<machines*jobs+2;vertex++){
@@ -251,7 +233,7 @@ void read_orlib(ifstream& inputFile, int jobs, int machines, WeightedGraph &Grap
         for(int j=shiftID+1;j<machines+shiftID;j++)
         {
             inputFile >> machine_n >> duration;
-            cout<<machine_n <<" "<< duration<<" - "<<j<<"->"<<j + 1<<endl;
+            //cout<<machine_n <<" "<< duration<<" - "<<j<<"->"<<j + 1<<endl;
             //cout << "chuj " << duration << endl;
             machine_map[machine_n].push_back(j);
             Graph.addEdge(j, j+1, duration,0);
@@ -259,7 +241,7 @@ void read_orlib(ifstream& inputFile, int jobs, int machines, WeightedGraph &Grap
             // cout << j << "," << j+1 << " duration: " << duration << endl;
         }
         inputFile >> machine_n >> duration;
-        cout<<"x:"<<machine_n <<" "<< duration<<" - "<<machines + shiftID<<"->"<<(jobs)*(machines) + 1<<endl;
+        //cout<<"x:"<<machine_n <<" "<< duration<<" - "<<machines + shiftID<<"->"<<(jobs)*(machines) + 1<<endl;
         // cout << "kurwa " << duration << endl;
         machine_map[machine_n].push_back(machines+shiftID);
         Graph.addEdge(machines + shiftID, (jobs)*(machines) + 1, duration,0);
@@ -300,7 +282,7 @@ void sort_machine_map(map<int, vector<int>> &mapa){
 
 int main() {
     srand(time(NULL));
-    ifstream inputFile("fs1.txt");
+    ifstream inputFile("la32.txt");
     //wszytsko chuj
     inputFile >> jobs >> machines;
     
@@ -312,25 +294,24 @@ int main() {
     map<int, vector<int>> neighbor_machine_map;
 
     vector<int> durations; //source and sink
-
-
+    int mainSolution,tmpSolution;
 
     read_orlib(inputFile, jobs, machines, baseGraph, machine_map, durations);
     mainGraph = baseGraph;
-    neighborGraph= baseGraph;
+    //neighborGraph= baseGraph;
 
-    //sort_machine_map(machine_map);
-    czytajMape(machine_map);
+    sort_machine_map(machine_map);
+    //czytajMape(machine_map);
 
-    neighbor_machine_map = machine_map;
+    //neighbor_machine_map = machine_map;
 
 
     initDisjunctiveEgdes(jobs,machines,mainGraph,machine_map,durations);
 
     // czytajMape(machine_map);
     cout<<endl;
-    SwapVertexes(neighbor_machine_map);
-    initDisjunctiveEgdes(jobs,machines,neighborGraph,neighbor_machine_map,durations);
+    //SwapVertexes(neighbor_machine_map);
+    //initDisjunctiveEgdes(jobs,machines,neighborGraph,neighbor_machine_map,durations);
     // czytajMape(neighbor_machine_map);
     // cout<<endl;
     // czytajMape(machine_map);
@@ -369,16 +350,28 @@ int main() {
     //makeBaseGraph(weightedGraph, 3, 3);  //potestowac przez zmienianie rozmiaru jobow i maszyn
     // Wykonaj sortowanie topologiczne i znajdź najdłuższe ścieżki
 
-    mainGraph.topologicalSort();
-    cout<<endl;
+    mainSolution = mainGraph.topologicalSort();
+
+    for(int i=0;i<300000;i++){
+        neighborGraph=baseGraph;
+        neighbor_machine_map = machine_map;
+        SwapVertexes(neighbor_machine_map);
+        initDisjunctiveEgdes(jobs,machines,neighborGraph,neighbor_machine_map,durations);
+        if(!neighborGraph.isCyclic()){
+            tmpSolution = neighborGraph.topologicalSort();
+            if(mainSolution>tmpSolution){
+                mainSolution = tmpSolution;
+                mainGraph = neighborGraph;
+                machine_map = neighbor_machine_map;
+            }
+        }
+    }
+    cout<<mainSolution<<endl;
+    for (int i = 1; i <= jobs*machines; i++) {
+        cout<<mainGraph.longestPath[i]<<" ";
+        if(i%machines==0) cout<<endl;
+    }
     
-    neighborGraph.topologicalSort();
-    if(neighborGraph.isCyclic()) {
-        cout << "CHUJ";
-    }
-    if(mainGraph.isCyclic()) {
-        cout << "DUPA";
-    }
     return 0;
 }
 
