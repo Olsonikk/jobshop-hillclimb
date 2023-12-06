@@ -176,7 +176,7 @@ void PrintList(WeightedGraph &Graph){
 
 }
 
-void initDisjunctiveEgdes(int jobs, int machines, WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> durations){
+void initDisjunctiveEgdes(WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> durations){
     for(int i=0;i<machines;i++){
         for(int j=0;j<jobs-1;j++){
             Graph.addEdge(machine_map[i][j],machine_map[i][j+1],durations[machine_map[i][j]],1);
@@ -218,7 +218,7 @@ void initDisjunctiveEgdes(int jobs, int machines, WeightedGraph &Graph, map<int,
 //     inputFile.close();
 //     return data;
 // }
-void read_orlib(ifstream& inputFile, int jobs, int machines, WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> &durations){
+void read_orlib(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> &durations){
     int machine_n, duration;
     if (!inputFile.is_open()) {
         cout << "Nie mozna otworzyc pliku!" << endl;
@@ -296,7 +296,7 @@ int main() {
     vector<int> durations; //source and sink
     int mainSolution,tmpSolution;
 
-    read_orlib(inputFile, jobs, machines, baseGraph, machine_map, durations);
+    read_orlib(inputFile,baseGraph, machine_map, durations);
     mainGraph = baseGraph;
     //neighborGraph= baseGraph;
 
@@ -306,7 +306,7 @@ int main() {
     //neighbor_machine_map = machine_map;
 
 
-    initDisjunctiveEgdes(jobs,machines,mainGraph,machine_map,durations);
+    initDisjunctiveEgdes(mainGraph,machine_map,durations);
 
     // czytajMape(machine_map);
     cout<<endl;
@@ -356,7 +356,7 @@ int main() {
         neighborGraph=baseGraph;
         neighbor_machine_map = machine_map;
         SwapVertexes(neighbor_machine_map);
-        initDisjunctiveEgdes(jobs,machines,neighborGraph,neighbor_machine_map,durations);
+        initDisjunctiveEgdes(neighborGraph,neighbor_machine_map,durations);
         if(!neighborGraph.isCyclic()){
             tmpSolution = neighborGraph.topologicalSort();
             if(mainSolution>tmpSolution){
