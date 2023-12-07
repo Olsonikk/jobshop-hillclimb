@@ -177,10 +177,6 @@ void initDisjunctiveEgdes(WeightedGraph &Graph, map<int, vector<int>> &machine_m
 
 void read_tailard(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> &durations){
     int temp_time, temp_machine;
-    if (!inputFile.is_open()) {
-        cout << "Nie mozna otworzyc pliku!" << endl;
-        exit(1);
-    }
 
     string tmp;
     
@@ -223,10 +219,6 @@ void read_tailard(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int
 
 void read_orlib(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int>> &machine_map, vector<int> &durations){
     int machine_n, duration;
-    if (!inputFile.is_open()) {
-        cout << "Nie mozna otworzyc pliku!" << endl;
-        exit(1);
-    }
 
     durations.push_back(0);
     for (int i = 0; i < jobs; ++i) {
@@ -295,12 +287,19 @@ void toFile(WeightedGraph &Graph){
 
 int main() {
     srand(time(NULL));
-    
-    int bad_neighbors = 0, iterations = 300000;
+    int nr_jobs = -1;
+    int bad_neighbors = 0, iterations = 1000;
 
     ifstream inputFile("swv17.txt");
 
+    if (!inputFile.is_open()) {
+        cout << "Nie mozna otworzyc pliku!" << endl;
+        exit(1);
+    }
+
     inputFile >> jobs >> machines;
+
+    if(nr_jobs != -1) jobs = nr_jobs;
     
     WeightedGraph baseGraph(jobs*machines+2);
     WeightedGraph mainGraph(jobs*machines+2);
@@ -314,9 +313,16 @@ int main() {
 
     read_orlib(inputFile,baseGraph, machine_map, durations);
     //read_tailard(inputFile,baseGraph, machine_map, durations);
+
+    if(jobs==1){
+        baseGraph.topologicalSort();
+        toFile(baseGraph);
+        return 0;
+    }
+
     mainGraph = baseGraph;
     //neighborGraph= baseGraph;
-
+    ///PrintList(mainGraph);
     sort_machine_map(machine_map);
     //czytajMape(machine_map);
     //cout << endl;
@@ -330,14 +336,18 @@ int main() {
     // czytajMape(machine_map);
     //cout<<endl;
 
+
     mainSolution = mainGraph.topologicalSort();
+    cout<<mainSolution;
     
     auto start_time = high_resolution_clock::now();
     
     for(int i=0;i<iterations;i++){
         neighborGraph=baseGraph;
         neighbor_machine_map = machine_map;
+        //czytajMape(machine_map);
         SwapVertexes(neighbor_machine_map);
+        //czytajMape(neighbor_machine_map);
         initDisjunctiveEgdes(neighborGraph,neighbor_machine_map,durations);
         if(!neighborGraph.isCyclic()){
             tmpSolution = neighborGraph.topologicalSort();
@@ -349,17 +359,16 @@ int main() {
             }else{
                 bad_neighbors++;
             }
-        }else{
-            bad_neighbors++;
         }
         auto current_time = high_resolution_clock::now();
         auto elapsed_time = duration_cast<seconds>(current_time - start_time).count();
         //cout<<elapsed_time<<endl;
-        if(bad_neighbors>=iterations/4){
+        //cout<<bad_neighbors<<" "<<iterations<<endl;
+        if(bad_neighbors>=iterations*0.1){
             cout << "Zli sasiedzi"<< endl;
             break;
         }
-        if (elapsed_time >= 900) {
+        if(elapsed_time >= 900) {
             cout << "Przekroczono limit czasu: "<<elapsed_time<< endl;
             break;
         }
@@ -370,7 +379,7 @@ int main() {
     //     cout<<mainGraph.longestPath[i]<<" ";
     //     if(i%machines==0) cout<<endl;
     // }
-    
+   
     return 0;
 }
 
