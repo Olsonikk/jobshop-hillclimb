@@ -106,8 +106,7 @@ public:
                     if (isCyclicUtil(neighbor, visited, recursionStack)) {
                         return true;
                     }
-                } else if (recursionStack.find(neighbor) != recursionStack.end()) {
-                    // The neighbor is already in the recursion stack, indicating a cycle
+                } else if (recursionStack.find(neighbor) != recursionStack.end()) { //cykl
                     return true;
                 }
             }
@@ -224,22 +223,18 @@ void read_orlib(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int>>
     for (int i = 0; i < jobs; ++i) {
         int shiftID = i*(machines);
         Graph.addEdge(0, shiftID+1, 0,0);
-        //cout << "0 ," << shiftID+1 << endl;
         for(int j=shiftID+1;j<machines+shiftID;j++)
         {
             inputFile >> machine_n >> duration;
-            //cout<<machine_n <<" "<< duration<<" - "<<j<<"->"<<j + 1<<endl;
+
             machine_map[machine_n].push_back(j);
             Graph.addEdge(j, j+1, duration,0);
             durations.push_back(duration);
-            // cout << j << "," << j+1 << " duration: " << duration << endl;
         }
         inputFile >> machine_n >> duration;
-        //cout<<"x:"<<machine_n <<" "<< duration<<" - "<<machines + shiftID<<"->"<<(jobs)*(machines) + 1<<endl;
         machine_map[machine_n].push_back(machines+shiftID);
         Graph.addEdge(machines + shiftID, (jobs)*(machines) + 1, duration,0);
         durations.push_back(duration);
-        // cout << machines + shiftID << ", " << (jobs)*(machines) + 1 << " duration: " << duration << endl;
     }
     
     durations.push_back(0);
@@ -285,27 +280,39 @@ void toFile(WeightedGraph &Graph){
 }
     
 
-int main() {
+int main(int argc, char** argv) {
     srand(time(NULL));
-    int nr_jobs = 0;
-    int bad_neighbors = 0, iterations = 100000;
+    if(argc != 4)
+    {
+        cout << "Zla ilosc parametrow!";
+        return 1;
+    }  
+    int nr_jobs = atoi(argv[3]);
+    int bad_neighbors = 0, iterations = 10000;
 
 
-    ifstream inputFile("swv17.txt");
+    ifstream inputFile(argv[2]);
 
     if (!inputFile.is_open()) {
         cout << "Nie mozna otworzyc pliku!" << endl;
         exit(1);
     }
 
+
     inputFile >> jobs >> machines;
 
     if(nr_jobs>jobs){
         cout<<"Zbyt mala ilosc zadan w pliku wejsciowym";
         inputFile.close();
-        return 0;
+        return 1;
     }
-    if(nr_jobs != 0) jobs = nr_jobs;
+    else if(nr_jobs > 0) jobs = nr_jobs;
+    else if(nr_jobs < -1)
+    {
+        cout << "Ilosc elementow musi byc >0";
+        inputFile.close();
+        return 1;
+    }
     
     WeightedGraph baseGraph(jobs*machines+2);
     WeightedGraph mainGraph(jobs*machines+2);
@@ -317,8 +324,20 @@ int main() {
     vector<int> durations; //source and sink
     int mainSolution,tmpSolution;
 
-    read_orlib(inputFile,baseGraph, machine_map, durations);
-    //read_tailard(inputFile,baseGraph, machine_map, durations);
+    if(atoi(argv[1]) == 0)
+    {
+        read_orlib(inputFile,baseGraph, machine_map, durations);
+    }
+    else if(atoi(argv[1]) == 1)
+    {
+        read_tailard(inputFile,baseGraph, machine_map, durations);
+    }
+    else
+    {
+        cout << "Niepoprawny parametr typu instancji! wybierz 0 lub 1" << endl;
+        exit(-1);
+    }
+
 
     if(jobs==1){
         baseGraph.topologicalSort();
@@ -327,33 +346,19 @@ int main() {
     }
 
     mainGraph = baseGraph;
-    //neighborGraph= baseGraph;
-    ///PrintList(mainGraph);
+
     sort_machine_map(machine_map);
-    //czytajMape(machine_map);
-    //cout << endl;
-    //PrintList(mainGraph);
-
-    //neighbor_machine_map = machine_map;
-
-
+    czytajMape(machine_map);
     initDisjunctiveEgdes(mainGraph,machine_map,durations);
 
-    // czytajMape(machine_map);
-    //cout<<endl;
-
-
     mainSolution = mainGraph.topologicalSort();
-    cout<<mainSolution;
     
     auto start_time = high_resolution_clock::now();
     
     for(int i=0;i<iterations;i++){
         neighborGraph=baseGraph;
         neighbor_machine_map = machine_map;
-        //czytajMape(machine_map);
         SwapVertexes(neighbor_machine_map);
-        //czytajMape(neighbor_machine_map);
         initDisjunctiveEgdes(neighborGraph,neighbor_machine_map,durations);
         if(!neighborGraph.isCyclic()){
             tmpSolution = neighborGraph.topologicalSort();
@@ -380,14 +385,6 @@ int main() {
         }
     }
     toFile(mainGraph);
-    // cout<<mainSolution<<endl;
-    // for (int i = 1; i <= jobs*machines; i++) {
-    //     cout<<mainGraph.longestPath[i]<<" ";
-    //     if(i%machines==0) cout<<endl;
-    // }
    
     return 0;
 }
-
-
-//podmiana wierzcholkow - swap w mapie, przerobienie krawędzi dysjunktywnych. Pozostałe stałe ESSA
