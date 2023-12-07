@@ -41,15 +41,12 @@ public:
 
         for (const auto& neighbor : adjacencyList[v]) {
             int nextVertex = neighbor[0];
-            // cout << "next element: " << nextVertex << endl;
             if (!visited[nextVertex]) {
-                //cout << "next element: " << nextVertex << endl;
                 topologicalSortUtil(nextVertex, visited, stack);
             }
         }
         
         stack.push(v);
-        //cout << stack.top() << endl;
     }
 
     int topologicalSort() {
@@ -62,17 +59,6 @@ public:
             }
         }
 
-        // Znajdź najdłuższe ścieżki
-        //vector<int> longestPath(vertices, -1);
-        // map<int,int> longestPath;
-        // for(int i=jobs*machines+1;i>=0;i--){
-        //     longestPath[i] = -1;
-        // }
-
-        // for (int i = 0; i < jobs*machines+2; i++) {
-        //     cout<<longestPath[i]<<" ";
-        //     if(i%machines==0) cout<<endl;
-        // }
         longestPath[s.top()] = 0;
 
         while (!s.empty()) {
@@ -84,10 +70,8 @@ public:
                 for (const auto& neighbor : adjacencyList[u]) {
                     int v = neighbor[0];
                     int weight = neighbor[1];
-                    //cout<<u<<"->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
                     if (longestPath[v] < longestPath[u] + weight) {
-                        longestPath[v] = longestPath[u] + weight;
-                        //cout<<u<<"--->"<<v<<" : "<<longestPath[v]<<" "<<weight<<" - "<<longestPath[u]<<endl;
+                            longestPath[v] = longestPath[u] + weight;
                     }
                 }
             }
@@ -349,8 +333,8 @@ int main(int argc, char** argv) {
 
     sort_machine_map(machine_map);
     czytajMape(machine_map);
+    
     initDisjunctiveEgdes(mainGraph,machine_map,durations);
-
     mainSolution = mainGraph.topologicalSort();
     
     auto start_time = high_resolution_clock::now();
