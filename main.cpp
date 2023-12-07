@@ -287,8 +287,9 @@ void toFile(WeightedGraph &Graph){
 
 int main() {
     srand(time(NULL));
-    int nr_jobs = -1;
-    int bad_neighbors = 0, iterations = 1000;
+    int nr_jobs = 0;
+    int bad_neighbors = 0, iterations = 100000;
+
 
     ifstream inputFile("swv17.txt");
 
@@ -299,7 +300,12 @@ int main() {
 
     inputFile >> jobs >> machines;
 
-    if(nr_jobs != -1) jobs = nr_jobs;
+    if(nr_jobs>jobs){
+        cout<<"Zbyt mala ilosc zadan w pliku wejsciowym";
+        inputFile.close();
+        return 0;
+    }
+    if(nr_jobs != 0) jobs = nr_jobs;
     
     WeightedGraph baseGraph(jobs*machines+2);
     WeightedGraph mainGraph(jobs*machines+2);
@@ -364,7 +370,7 @@ int main() {
         auto elapsed_time = duration_cast<seconds>(current_time - start_time).count();
         //cout<<elapsed_time<<endl;
         //cout<<bad_neighbors<<" "<<iterations<<endl;
-        if(bad_neighbors>=iterations*0.1){
+        if(bad_neighbors>=iterations*0.4){
             cout << "Zli sasiedzi"<< endl;
             break;
         }
