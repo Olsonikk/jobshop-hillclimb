@@ -15,7 +15,7 @@
 using namespace std;
 using namespace chrono;
 
-int jobs, machines;
+int jobs, machines, all_jobs;
 
 class WeightedGraph {
 public:
@@ -180,8 +180,14 @@ void read_tailard(ifstream& inputFile, WeightedGraph &Graph, map<int, vector<int
         Graph.addEdge(machines + shiftID, (jobs)*(machines) + 1, temp_time,0);
         durations.push_back(temp_time);
     }
-
     durations.push_back(0);
+
+    if(all_jobs!=jobs){
+        getline(inputFile, tmp);
+        for(int i = 0; i < all_jobs-jobs; i++){
+            getline(inputFile, tmp);
+        }
+    }
 
     inputFile>>tmp;
     
@@ -272,7 +278,7 @@ int main(int argc, char** argv) {
         return 1;
     }  
     int nr_jobs = atoi(argv[3]);
-    int bad_neighbors = 0, iterations = 10000;
+    int bad_neighbors = 0, iterations = 50000;
 
 
     ifstream inputFile(argv[2]);
@@ -284,6 +290,8 @@ int main(int argc, char** argv) {
 
 
     inputFile >> jobs >> machines;
+
+    all_jobs = jobs;
 
     if(nr_jobs>jobs){
         cout<<"Zbyt mala ilosc zadan w pliku wejsciowym";
@@ -332,7 +340,6 @@ int main(int argc, char** argv) {
     mainGraph = baseGraph;
 
     sort_machine_map(machine_map);
-    czytajMape(machine_map);
     
     initDisjunctiveEgdes(mainGraph,machine_map,durations);
     mainSolution = mainGraph.topologicalSort();
@@ -363,12 +370,12 @@ int main(int argc, char** argv) {
             cout << "Zli sasiedzi"<< endl;
             break;
         }
-        if(elapsed_time >= 900) {
+        if(elapsed_time >= 180) {
             cout << "Przekroczono limit czasu: "<<elapsed_time<< endl;
             break;
         }
     }
     toFile(mainGraph);
-   
+ 
     return 0;
 }
