@@ -267,8 +267,7 @@ void toFile(WeightedGraph &Graph){
         if(i%machines==0) outFile<<endl;
     }
     outFile.close();
-}
-    
+}   
 
 int main(int argc, char** argv) {
     srand(time(NULL));
@@ -278,7 +277,8 @@ int main(int argc, char** argv) {
         return 1;
     }  
     int nr_jobs = atoi(argv[3]);
-    int bad_neighbors = 0, iterations = 50000;
+    int iterations = 10000;
+    bool bad_neighbors;
 
 
     ifstream inputFile(argv[2]);
@@ -309,12 +309,14 @@ int main(int argc, char** argv) {
     WeightedGraph baseGraph(jobs*machines+2);
     WeightedGraph mainGraph(jobs*machines+2);
     WeightedGraph neighborGraph(jobs*machines+2);
+    WeightedGraph tmpNeighborGraph(jobs*machines+2);
     
+    map<int, vector<int>> tmp_machine_map;
     map<int, vector<int>> machine_map;
     map<int, vector<int>> neighbor_machine_map;
 
     vector<int> durations; //source and sink
-    int mainSolution,tmpSolution;
+    int mainSolution,tmpSolution,neighborSolution;
 
     if(atoi(argv[1]) == 0)
     {
@@ -342,40 +344,54 @@ int main(int argc, char** argv) {
     sort_machine_map(machine_map);
     
     initDisjunctiveEgdes(mainGraph,machine_map,durations);
+
     mainSolution = mainGraph.topologicalSort();
+
+    neighborGraph = mainGraph;
+    neighbor_machine_map = machine_map;
+    neighborSolution = mainSolution;
     
     auto start_time = high_resolution_clock::now();
-    
-    for(int i=0;i<iterations;i++){
-        neighborGraph=baseGraph;
-        neighbor_machine_map = machine_map;
-        SwapVertexes(neighbor_machine_map);
-        initDisjunctiveEgdes(neighborGraph,neighbor_machine_map,durations);
-        if(!neighborGraph.isCyclic()){
-            tmpSolution = neighborGraph.topologicalSort();
-            if(mainSolution>tmpSolution){
-                mainSolution = tmpSolution;
-                mainGraph = neighborGraph;
-                machine_map = neighbor_machine_map;
-                bad_neighbors = 0;
-            }else{
-                bad_neighbors++;
+    cout<<mainSolution<<endl;
+    while(true){
+        bad_neighbors = true;
+        for(int i=0;i<iterations;i++){
+            tmpNeighborGraph=baseGraph;
+            tmp_machine_map = machine_map;
+            SwapVertexes(tmp_machine_map);
+            initDisjunctiveEgdes(tmpNeighborGraph,tmp_machine_map,durations);
+            if(!tmpNeighborGraph.isCyclic()){
+                tmpSolution = tmpNeighborGraph.topologicalSort();
+                if(neighborSolution>tmpSolution){
+                    neighborSolution = tmpSolution;
+                    neighborGraph = tmpNeighborGraph;
+                    neighbor_machine_map = tmp_machine_map;
+                    bad_neighbors = false;
+                }
             }
+
+            auto current_time = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<seconds>(current_time - start_time).count();
+                
+            if(elapsed_time >= 180) {
+                cout << "Przekroczono limit czasu: "<<elapsed_time/60<<" min"<<endl;
+                toFile(neighborGraph);
+                return 0;
+            }
+            //cout<<elapsed_time<<endl;
+            //cout<<bad_neighbors<<" "<<iterations<<endl;
+            // if(bad_neighbors<=iterations*0.4){
+            //     cout << "Nie znaleziono lepszego sasiada"<< endl;
+            //     break;
+            // }
         }
-        auto current_time = high_resolution_clock::now();
-        auto elapsed_time = duration_cast<seconds>(current_time - start_time).count();
-        //cout<<elapsed_time<<endl;
-        //cout<<bad_neighbors<<" "<<iterations<<endl;
-        if(bad_neighbors>=iterations*0.4){
-            cout << "Zli sasiedzi"<< endl;
-            break;
-        }
-        if(elapsed_time >= 180) {
-            cout << "Przekroczono limit czasu: "<<elapsed_time<< endl;
-            break;
+        mainGraph = neighborGraph;
+        machine_map = neighbor_machine_map;
+
+        if(bad_neighbors){
+            cout<<"Nie znaleziono lepszych sasiadow danego rozwiazania"<<endl;
+            toFile(mainGraph);
+            return 0;
         }
     }
-    toFile(mainGraph);
- 
-    return 0;
 }
