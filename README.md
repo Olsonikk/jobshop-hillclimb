@@ -1,5 +1,5 @@
-#Job Shop
+## Job Shop
 Implementation of Hill Climb approach for solving job-shop schedulling problem.
-## Authors
+### Authors
 Aleksander Czarnecki
 Jakub Glazik
